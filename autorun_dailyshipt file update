@@ -1,0 +1,104 @@
+
+
+
+Sub actshipt_daily2()
+ '
+
+ Application.ScreenUpdating = False
+ Application.DisplayAlerts = False
+
+   shiptdaily = "\\sacwfsip01\SAP_REPORT\EPP\report\otc\R010_ZOTC044_Daily\"
+
+   TableauR = "\\cvpfilip03\SDSS_RFF_Data\KPI\planning\ZOTC044_daily\"
+   Tableaufile = TableauR & "\" & "R010 Actual Ship Summary.xlsx"
+
+Set fso = CreateObject("Scripting.FileSystemObject")
+Set objfile = fso.GetFile(Tableaufile)
+   
+   If fso.FileExists(objfile) Then
+       sReturn = objfile.DateLastModified
+   End If
+        sReturn = Format(sReturn, "mm/dd/yyyy")
+        dt2 = Format(Date, "mm/dd/yyyy")
+   If sReturn = dt2 Then Exit Sub   '' for test
+ 
+'====================================================================================
+    dt = Format(Date - 1, "yyyymmdd")
+    dailyfile = shiptdaily & "\" & "Daily_" & dt & "*" & ".xls"      '''dailyfile
+    
+    On Error GoTo continue
+       Workbooks.Open (dailyfile)
+    
+    On Error GoTo 0
+
+Set wd = ActiveWorkbook
+
+wd.Activate
+
+    Columns("H:H").Select
+    Selection.TextToColumns Destination:=Range("H1"), DataType:=xlDelimited, _
+        TextQualifier:=xlDoubleQuote, ConsecutiveDelimiter:=False, Tab:=True, _
+        Semicolon:=False, Comma:=False, Space:=False, Other:=False, FieldInfo _
+        :=Array(1, 2), TrailingMinusNumbers:=True
+        
+    Columns("k:k").Select
+    Selection.TextToColumns Destination:=Range("k1"), DataType:=xlDelimited, _
+        TextQualifier:=xlDoubleQuote, ConsecutiveDelimiter:=False, Tab:=True, _
+        Semicolon:=False, Comma:=False, Space:=False, Other:=False, FieldInfo _
+        :=Array(1, 2), TrailingMinusNumbers:=True
+        
+        
+    Columns("ab:ab").Select
+    Selection.TextToColumns Destination:=Range("ab1"), DataType:=xlDelimited, _
+        TextQualifier:=xlDoubleQuote, ConsecutiveDelimiter:=False, Tab:=True, _
+        Semicolon:=False, Comma:=False, Space:=False, Other:=False, FieldInfo _
+        :=Array(1, 2), TrailingMinusNumbers:=True
+        
+        
+     wd.Sheets(1).Name = "Daily Shipment"
+     wd.SaveAs TableauR & "\" & "R010 Actual Ship Summary", xlOpenXMLWorkbook  ''change for test
+     wd.Close (False)
+
+Application.ScreenUpdating = True
+Exit Sub
+
+
+continue:
+
+ tt = Format(Now, "hmm")
+ If tt <= 1130 Then
+    NewTime = Now + TimeValue("00:01:00")
+    Application.OnTime NewTime, "actshipt_daily2"
+ End If
+
+End Sub
+
+''====================================================================================================================
+
+Sub actshipt_daily_dele()
+ '
+ On Error GoTo ex
+ Application.ScreenUpdating = False
+ Application.DisplayAlerts = False
+
+   TableauR = "\\cvpfilip03\SDSS_RFF_Data\KPI\planning\ZOTC044_daily\"
+   Tableaufile = TableauR & "\" & "R010 Actual Ship Summary.xlsx"
+    
+    Workbooks.Open (Tableaufile)
+    
+Set wt = Workbooks("R010 Actual Ship Summary.xlsx")
+    a = wt.Sheets(1).Cells(Rows.Count, 14).End(xlUp).Row
+    wt.Sheets(1).Rows("2:" & a).ClearContents
+
+    wt.Save
+    wt.Close
+    
+Application.ScreenUpdating = True
+ex:
+Exit Sub
+
+End Sub
+
+
+
+
